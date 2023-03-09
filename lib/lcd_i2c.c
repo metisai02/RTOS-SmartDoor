@@ -5,3 +5,8 @@
  *      Author: DELL
  */
 
+// this thread has been managed by hanh
+
+#include "AccCtrl.h"
+
+int a = 5;

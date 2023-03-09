@@ -283,7 +283,7 @@ uint8_t Delete_ID(uint16_t ID)                 // xoa van tay theo id
 	Result=CheckFPRespsone(16);
 	return Result;
 }
-
+//156
 
 
 

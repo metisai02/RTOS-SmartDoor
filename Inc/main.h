@@ -58,6 +58,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define MFRC522_CS_Pin GPIO_PIN_12
+#define MFRC522_CS_GPIO_Port GPIOB
+#define MFRC522_RST_Pin GPIO_PIN_8
+#define MFRC522_RST_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

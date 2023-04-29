@@ -5,13 +5,14 @@
  *      Author: DELL
  */
 
-#include "stm32f103xb.h"
-#include "stm32f1xx_hal_gpio.h"
-#include "stm32f1xx_hal.h"
+
+
 
 
 #ifndef KEYPAD_H_
 #define KEYPAD_H_
+
+#include "stm32f1xx_hal.h"
 
 #define KEYPAD_PORT         GPIOA
 

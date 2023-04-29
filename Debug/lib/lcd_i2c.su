@@ -1,0 +1,9 @@
+../lib/lcd_i2c.c:12:13:mdelay	24	static
+../lib/lcd_i2c.c:18:13:udelay	24	static
+../lib/lcd_i2c.c:24:13:I2C_LCD_Write	32	static
+../lib/lcd_i2c.c:57:6:I2C_LCD_init	24	static
+../lib/lcd_i2c.c:85:6:I2C_LCD_print_char	16	static
+../lib/lcd_i2c.c:90:6:I2C_LCD_display_clear	16	static
+../lib/lcd_i2c.c:95:6:I2C_LCD_display_return_home	16	static
+../lib/lcd_i2c.c:100:6:I2C_LCD_print_string	16	static
+../lib/lcd_i2c.c:106:6:I2C_LCD_set_cursor	16	static

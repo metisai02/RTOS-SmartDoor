@@ -33,3 +33,6 @@
 "./Src/sysmem.o"
 "./Src/system_stm32f1xx.o"
 "./Startup/startup_stm32f103c8tx.o"
+"./lib/keypad.o"
+"./lib/lcd_i2c.o"
+"./lib/vantay.o"

@@ -97,10 +97,10 @@ static void MX_SPI2_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_TIM3_Init(void);
-void StartDefaultTask(void const * argument);
-void StartTask02(void const * argument);
-void StartTask03(void const * argument);
-void StartTask04(void const * argument);
+void StartDefaultTask(void const *argument);
+void StartTask02(void const *argument);
+void StartTask03(void const *argument);
+void StartTask04(void const *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -112,15 +112,14 @@ void StartTask04(void const * argument);
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
-  
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -202,7 +201,7 @@ int main(void)
 
   /* Start scheduler */
   osKernelStart();
-  
+
   /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
@@ -217,16 +216,16 @@ int main(void)
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Initializes the CPU, AHB and APB busses clocks 
-  */
+  /** Initializes the CPU, AHB and APB busses clocks
+   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
@@ -238,10 +237,9 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  /** Initializes the CPU, AHB and APB busses clocks 
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  /** Initializes the CPU, AHB and APB busses clocks
+   */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -254,10 +252,10 @@ void SystemClock_Config(void)
 }
 
 /**
-  * @brief I2C1 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief I2C1 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_I2C1_Init(void)
 {
 
@@ -284,14 +282,13 @@ static void MX_I2C1_Init(void)
   /* USER CODE BEGIN I2C1_Init 2 */
 
   /* USER CODE END I2C1_Init 2 */
-
 }
 
 /**
-  * @brief SPI2 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief SPI2 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_SPI2_Init(void)
 {
 
@@ -322,14 +319,13 @@ static void MX_SPI2_Init(void)
   /* USER CODE BEGIN SPI2_Init 2 */
 
   /* USER CODE END SPI2_Init 2 */
-
 }
 
 /**
-  * @brief TIM3 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM3 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM3_Init(void)
 {
 
@@ -367,14 +363,13 @@ static void MX_TIM3_Init(void)
   /* USER CODE BEGIN TIM3_Init 2 */
 
   /* USER CODE END TIM3_Init 2 */
-
 }
 
 /**
-  * @brief USART1 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief USART1 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_USART1_UART_Init(void)
 {
 
@@ -400,14 +395,13 @@ static void MX_USART1_UART_Init(void)
   /* USER CODE BEGIN USART1_Init 2 */
 
   /* USER CODE END USART1_Init 2 */
-
 }
 
 /**
-  * @brief USART3 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief USART3 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_USART3_UART_Init(void)
 {
 
@@ -433,14 +427,13 @@ static void MX_USART3_UART_Init(void)
   /* USER CODE BEGIN USART3_Init 2 */
 
   /* USER CODE END USART3_Init 2 */
-
 }
 
 /**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief GPIO Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -451,23 +444,21 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3 
-                          |MFRC522_RST_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 | MFRC522_RST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(MFRC522_CS_GPIO_Port, MFRC522_CS_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PA0 PA1 PA2 PA3 
+  /*Configure GPIO pins : PA0 PA1 PA2 PA3
                            MFRC522_RST_Pin */
-  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3 
-                          |MFRC522_RST_Pin;
+  GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 | MFRC522_RST_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PA4 PA5 PA6 PA7 */
-  GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
+  GPIO_InitStruct.Pin = GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -484,7 +475,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
 }
 
 /* USER CODE BEGIN 4 */
@@ -507,14 +497,8 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
  * @retval None
  */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const * argument)
+void StartDefaultTask(void const *argument)
 {
-    
-    
-    
-    
-    
-    
 
   /* USER CODE BEGIN 5 */
   char key;
@@ -565,7 +549,7 @@ void StartDefaultTask(void const * argument)
 
     osDelay(1);
   }
-  /* USER CODE END 5 */ 
+  /* USER CODE END 5 */
 }
 
 /* USER CODE BEGIN Header_StartTask02 */
@@ -575,7 +559,7 @@ void StartDefaultTask(void const * argument)
  * @retval None
  */
 /* USER CODE END Header_StartTask02 */
-void StartTask02(void const * argument)
+void StartTask02(void const *argument)
 {
   /* USER CODE BEGIN StartTask02 */
   uint8_t status = MI_ERR;
@@ -622,7 +606,7 @@ void StartTask02(void const * argument)
  * @retval None
  */
 /* USER CODE END Header_StartTask03 */
-void StartTask03(void const * argument)
+void StartTask03(void const *argument)
 {
   /* USER CODE BEGIN StartTask03 */
   uint8_t Result = FP_NOFINGER;
@@ -674,10 +658,13 @@ void StartTask03(void const * argument)
  * @retval None
  */
 /* USER CODE END Header_StartTask04 */
-void StartTask04(void const * argument)
+void StartTask04(void const *argument)
 {
   /* USER CODE BEGIN StartTask04 */
   uint8_t check_data;
+  uint8_t r_counter = 0;
+  char rc_key = 0;
+  uint8_t status = 0;
   /* Infinite loop */
   for (;;)
   {
@@ -725,8 +712,85 @@ void StartTask04(void const * argument)
         }
         else if (check_data == 'B')
         {
+          // RFID
+          I2C_LCD_display_clear(&LCD);
+          I2C_LCD_set_cursor(&LCD, 0, 4);
+          I2C_LCD_print_string(&LCD, "ADD RFID");
+          HAL_Delay(700);
+          I2C_LCD_display_clear(&LCD);
+          I2C_LCD_print_string(&LCD, "Choose The Card");
+          I2C_LCD_set_cursor(&LCD, 1, 0);
+          I2C_LCD_print_string(&LCD, "To Replace:1,2,3");
+          do
+          {
+            while ((rc_key = get_char()) == 0)
+              ;
+            if (rc_key == '1' || rc_key == '2' || rc_key == '3')
+            {
+              r_counter++;
+            }
+
+          } while (r_counter < 1);
+          r_counter = 0;
+          sprintf(str_it, "Your number: %x", rc_key);
+          I2C_LCD_display_clear(&LCD);
+          I2C_LCD_print_string(&LCD, str_it);
+          HAL_Delay(1000);
+
+          I2C_LCD_display_clear(&LCD);
+          I2C_LCD_set_cursor(&LCD, 0, 2);
+          I2C_LCD_print_string(&LCD, "Put Ur Card!!");
+          I2C_LCD_set_cursor(&LCD, 1, 2);
+          I2C_LCD_print_string(&LCD, "Put Ur Card!!");
+          while ((status = MFRC522_Request(PICC_REQIDL, str)) != MI_OK)
+          {
+          }
+          status = MFRC522_Anticoll(str);
+          if (status == MI_OK)
+          {
+            sprintf(str2, "UID_%x: %x,%x,%x,%x", rc_key, str[0], str[1], str[2], str[3]);
+            if (rc_key == '1')
+            {
+              UID_1[0] = str[0];
+              UID_1[1] = str[1];
+              UID_1[2] = str[2];
+              UID_1[3] = str[3];
+              UID_1[4] = str[4];
+            }
+            else if (rc_key == '2')
+            {
+              UID_2[0] = str[0];
+              UID_2[1] = str[1];
+              UID_2[2] = str[2];
+              UID_2[3] = str[3];
+              UID_2[4] = str[4];
+            }
+            else
+            {
+              UID_3[0] = str[0];
+              UID_3[1] = str[1];
+              UID_3[2] = str[2];
+              UID_3[3] = str[3];
+              UID_3[4] = str[4];
+            }
+            I2C_LCD_display_clear(&LCD);
+            I2C_LCD_set_cursor(&LCD, 1, 0);
+            I2C_LCD_print_string(&LCD, str2);
+            vTaskDelay(2000);
+          }
+          else
+          {
+            I2C_LCD_display_clear(&LCD);
+            I2C_LCD_set_cursor(&LCD, 0, 3);
+            I2C_LCD_print_string(&LCD, "RFID Error!!");
+            I2C_LCD_set_cursor(&LCD, 1, 3);
+            I2C_LCD_print_string(&LCD, "RFID Error!!");
+            vTaskDelay(1000);
+          }
+          HAL_UART_Transmit(&huart3, ack_rfid, 1, 1000);
         }
       }
+      HAL_UART_Receive_IT(&huart3, &data_winform, 1);
     }
 
     osDelay(1);
@@ -735,19 +799,20 @@ void StartTask04(void const * argument)
 }
 
 /**
-  * @brief  Period elapsed callback in non blocking mode
-  * @note   This function is called  when TIM2 interrupt took place, inside
-  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
-  * a global variable "uwTick" used as application time base.
-  * @param  htim : TIM handle
-  * @retval None
-  */
+ * @brief  Period elapsed callback in non blocking mode
+ * @note   This function is called  when TIM2 interrupt took place, inside
+ * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+ * a global variable "uwTick" used as application time base.
+ * @param  htim : TIM handle
+ * @retval None
+ */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
 
   /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM2) {
+  if (htim->Instance == TIM2)
+  {
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
@@ -756,9 +821,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 }
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -767,16 +832,16 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
-{ 
+{
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */

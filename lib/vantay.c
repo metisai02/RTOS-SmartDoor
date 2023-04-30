@@ -183,7 +183,7 @@ uint8_t RegistryNewFinger(uint16_t LocationID)
 
     // second get image
 
-    HAL_Delay(2000);
+   // HAL_Delay(2000);
     Result = FP_NOFINGER;
     TimeOut = HAL_GetTick();
 

@@ -1,9 +1,0 @@
-lcd_i2c.c:9:13:mdelay	24	static
-lcd_i2c.c:15:13:udelay	24	static
-lcd_i2c.c:21:13:I2C_LCD_Write	32	static
-lcd_i2c.c:54:6:I2C_LCD_init	24	static
-lcd_i2c.c:82:6:I2C_LCD_print_char	16	static
-lcd_i2c.c:87:6:I2C_LCD_display_clear	16	static
-lcd_i2c.c:92:6:I2C_LCD_display_return_home	16	static
-lcd_i2c.c:97:6:I2C_LCD_print_string	16	static
-lcd_i2c.c:103:6:I2C_LCD_set_cursor	16	static

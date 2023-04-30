@@ -1,0 +1,9 @@
+/Drivers/
+/lib/
+/Middlewares/
+/Src/
+/Startup/
+/makefile
+/objects.list
+/objects.mk
+/sources.mk

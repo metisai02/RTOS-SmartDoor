@@ -120,31 +120,37 @@ uint8_t CheckFPRespsone(uint8_t MaxRead)
     uint32_t TimeOut = HAL_GetTick();
     uint8_t Result;
     IDFromFinger = 0xFF;
-    while ((HAL_GetTick() - TimeOut < 1000) && ByteCount < MaxRead) // time out is 1000 ms
+    while ((HAL_GetTick() - TimeOut < 500) && ByteCount < MaxRead) // time out is 1000 ms
     {
-        if (HAL_UART_Receive(&huart1, (uint8_t *)UARTData, 1, 1000) == HAL_OK)
+        if (HAL_UART_Receive(&huart1, (uint8_t *)UARTData, 1, 1) == HAL_OK)
         {
             FPRXData[ByteCount] = UARTData[0];
             ByteCount++;
         }
     }
 
-    if (ByteCount == 0)
-    {
-        Result = FP_ERROR;
-        return Result;
-    }
-    else if (ByteCount < MaxRead)
-    {
-        Result = FP_ERROR;
-        return Result;
-    }
-    else // vail data return
-    {
-        IDFromFinger = FPRXData[11];
-        Result = FPRXData[9];
-        return Result;
-    }
+//    if (ByteCount == 0)
+//    {
+//        Result = FP_ERROR;
+//        return Result;
+//    }
+//    else if (ByteCount < MaxRead)
+//    {
+//        Result = FP_ERROR;
+//        return Result;
+//    }
+//    else // vail data return
+//    {
+//        IDFromFinger = FPRXData[11];
+//        Result = FPRXData[9];
+//        return Result;
+//    }
+        if(ByteCount>=MaxRead) // vail data return
+        {
+            IDFromFinger = FPRXData[11];
+            Result = FPRXData[9];
+            return Result;
+        }
 }
 
 uint8_t GetNumberOfFinger()

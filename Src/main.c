@@ -24,12 +24,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "vantay.h"
-#include "rfid.h"
-#include "lcd_i2c.h"
-#include "keypad.h"
 #include <string.h>
 #include <stdio.h>
+#include <vantay.h>
+// #include <rfid.h>
+#include <keypad.h>
+#include <lcd_i2c.h>
+#include "MFRC522.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -39,7 +40,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define LCD_ADDR 0x27
+#define LCD_ADDR 0x4E
 
 uint8_t data_winform = 0;
 uint32_t start1, end1, ticks;
@@ -78,29 +79,33 @@ TIM_HandleTypeDef htim3;
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart3;
+DMA_HandleTypeDef hdma_usart1_rx;
 
 osThreadId KeyPadHandle;
 osThreadId RFIDHandle;
 osThreadId FingerPrinfHandle;
 osThreadId INTERRUPTHandle;
 osMessageQId RegisterHandle;
+QueueHandle_t printfingerHandle;
 osSemaphoreId myBinarySem01Handle;
 /* USER CODE BEGIN PV */
 I2C_LCD_Handle_t LCD;
+uint8_t f_recei[20];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_TIM3_Init(void);
-void StartDefaultTask(void const *argument);
-void StartTask02(void const *argument);
-void StartTask03(void const *argument);
-void StartTask04(void const *argument);
+void StartDefaultTask(void const * argument);
+void StartTask02(void const * argument);
+void StartTask03(void const * argument);
+void StartTask04(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -112,21 +117,22 @@ void StartTask04(void const *argument);
 /* USER CODE END 0 */
 
 /**
- * @brief  The application entry point.
- * @retval int
- */
+  * @brief  The application entry point.
+  * @retval int
+  */
 int main(void)
 {
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
+  
 
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
-  /* USER CODE BEGIN Init */
+
 
   /* USER CODE END Init */
 
@@ -139,6 +145,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_I2C1_Init();
   MX_SPI2_Init();
   MX_USART1_UART_Init();
@@ -170,6 +177,10 @@ int main(void)
   osMessageQDef(Register, 1, uint8_t);
   RegisterHandle = osMessageCreate(osMessageQ(Register), NULL);
 
+  /* definition and creation of printfinger */
+  osMessageQDef(printfinger, 6, uint8_t);
+  printfingerHandle = osMessageCreate(osMessageQ(printfinger), NULL);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
@@ -180,7 +191,7 @@ int main(void)
   KeyPadHandle = osThreadCreate(osThread(KeyPad), NULL);
 
   /* definition and creation of RFID */
-  osThreadDef(RFID, StartTask02, osPriorityNormal, 0, 128);
+  osThreadDef(RFID, StartTask02, osPriorityBelowNormal, 0, 128);
   RFIDHandle = osThreadCreate(osThread(RFID), NULL);
 
   /* definition and creation of FingerPrinf */
@@ -195,13 +206,16 @@ int main(void)
   keypad_init();
   MFRC522_Init();
   I2C_LCD_init(&LCD, &hi2c1, LCD_ADDR);
+  // I2C_LCD_print_string(&LCD, "Press Ur Pass!");
   HAL_UART_Receive_IT(&huart3, &data_winform, 1);
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart1, f_recei, 20);
+  __HAL_DMA_DISABLE_IT(&hdma_usart1_rx, DMA_IT_HT);
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
   /* Start scheduler */
   osKernelStart();
-
+  
   /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
@@ -216,16 +230,16 @@ int main(void)
 }
 
 /**
- * @brief System Clock Configuration
- * @retval None
- */
+  * @brief System Clock Configuration
+  * @retval None
+  */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Initializes the CPU, AHB and APB busses clocks
-   */
+  /** Initializes the CPU, AHB and APB busses clocks 
+  */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
@@ -237,9 +251,10 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  /** Initializes the CPU, AHB and APB busses clocks
-   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+  /** Initializes the CPU, AHB and APB busses clocks 
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -252,10 +267,10 @@ void SystemClock_Config(void)
 }
 
 /**
- * @brief I2C1 Initialization Function
- * @param None
- * @retval None
- */
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_I2C1_Init(void)
 {
 
@@ -282,13 +297,14 @@ static void MX_I2C1_Init(void)
   /* USER CODE BEGIN I2C1_Init 2 */
 
   /* USER CODE END I2C1_Init 2 */
+
 }
 
 /**
- * @brief SPI2 Initialization Function
- * @param None
- * @retval None
- */
+  * @brief SPI2 Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_SPI2_Init(void)
 {
 
@@ -319,13 +335,14 @@ static void MX_SPI2_Init(void)
   /* USER CODE BEGIN SPI2_Init 2 */
 
   /* USER CODE END SPI2_Init 2 */
+
 }
 
 /**
- * @brief TIM3 Initialization Function
- * @param None
- * @retval None
- */
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_TIM3_Init(void)
 {
 
@@ -363,13 +380,14 @@ static void MX_TIM3_Init(void)
   /* USER CODE BEGIN TIM3_Init 2 */
 
   /* USER CODE END TIM3_Init 2 */
+
 }
 
 /**
- * @brief USART1 Initialization Function
- * @param None
- * @retval None
- */
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_USART1_UART_Init(void)
 {
 
@@ -381,7 +399,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 57600;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -395,13 +413,14 @@ static void MX_USART1_UART_Init(void)
   /* USER CODE BEGIN USART1_Init 2 */
 
   /* USER CODE END USART1_Init 2 */
+
 }
 
 /**
- * @brief USART3 Initialization Function
- * @param None
- * @retval None
- */
+  * @brief USART3 Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_USART3_UART_Init(void)
 {
 
@@ -427,13 +446,30 @@ static void MX_USART3_UART_Init(void)
   /* USER CODE BEGIN USART3_Init 2 */
 
   /* USER CODE END USART3_Init 2 */
+
+}
+
+/** 
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void) 
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 6, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+
 }
 
 /**
- * @brief GPIO Initialization Function
- * @param None
- * @retval None
- */
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -444,37 +480,40 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 | MFRC522_RST_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3 
+                          |RC522_RST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(MFRC522_CS_GPIO_Port, MFRC522_CS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(RC522_CS_GPIO_Port, RC522_CS_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PA0 PA1 PA2 PA3
-                           MFRC522_RST_Pin */
-  GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 | MFRC522_RST_Pin;
+  /*Configure GPIO pins : PA0 PA1 PA2 PA3 
+                           RC522_RST_Pin */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3 
+                          |RC522_RST_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PA4 PA5 PA6 PA7 */
-  GPIO_InitStruct.Pin = GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7;
+  GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : MFRC522_CS_Pin */
-  GPIO_InitStruct.Pin = MFRC522_CS_Pin;
+  /*Configure GPIO pin : RC522_CS_Pin */
+  GPIO_InitStruct.Pin = RC522_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(MFRC522_CS_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(RC522_CS_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PA12 */
   GPIO_InitStruct.Pin = GPIO_PIN_12;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
 }
 
 /* USER CODE BEGIN 4 */
@@ -488,6 +527,14 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
     portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
   }
 }
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+    uint8_t data =  f_recei[9];
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart1, f_recei, 20);
+  __HAL_DMA_DISABLE_IT(&hdma_usart1_rx, DMA_IT_HT);
+  xQueueSendFromISR(printfingerHandle,&data,NULL);
+  //  f_dest_len_r = Size;
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -497,8 +544,14 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
  * @retval None
  */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const *argument)
+void StartDefaultTask(void const * argument)
 {
+    
+    
+    
+    
+    
+    
 
   /* USER CODE BEGIN 5 */
   char key;
@@ -507,6 +560,8 @@ void StartDefaultTask(void const *argument)
   for (;;)
   {
     key = get_char();
+//    I2C_LCD_display_clear(&LCD);
+//    I2C_LCD_print_string(&LCD, "Press Ur Pass!");
 
     if (key != '*' && key != '#' && key != 'D' && key != 0 && key != 0x01 && key != 'A' && key != 'B')
     {
@@ -547,9 +602,9 @@ void StartDefaultTask(void const *argument)
       }
     }
 
-    osDelay(1);
+    osDelay(10);
   }
-  /* USER CODE END 5 */
+  /* USER CODE END 5 */ 
 }
 
 /* USER CODE BEGIN Header_StartTask02 */
@@ -559,13 +614,15 @@ void StartDefaultTask(void const *argument)
  * @retval None
  */
 /* USER CODE END Header_StartTask02 */
-void StartTask02(void const *argument)
+void StartTask02(void const * argument)
 {
   /* USER CODE BEGIN StartTask02 */
   uint8_t status = MI_ERR;
   /* Infinite loop */
   for (;;)
   {
+//    I2C_LCD_display_clear(&LCD);
+//    I2C_LCD_print_string(&LCD, "Press Ur Pass!");
     status = MFRC522_Request(PICC_REQIDL, str);
     if (status == MI_OK)
     {
@@ -594,7 +651,7 @@ void StartTask02(void const *argument)
         }
       }
     }
-    osDelay(1);
+    osDelay(10);
   }
   /* USER CODE END StartTask02 */
 }
@@ -606,47 +663,65 @@ void StartTask02(void const *argument)
  * @retval None
  */
 /* USER CODE END Header_StartTask03 */
-void StartTask03(void const *argument)
+void StartTask03(void const * argument)
 {
   /* USER CODE BEGIN StartTask03 */
   uint8_t Result = FP_NOFINGER;
   /* Infinite loop */
   for (;;)
   {
+    uint32_t time = HAL_GetTick();
     SendFPHeader();
     SendFPGetImage();
-    Result = CheckFPRespsone(12);
-
-    if (Result == FP_OK)
+    uint32_t END = HAL_GetTick() - time;
+    //  Result = CheckFPRespsone(12);
+    if (xQueueReceive(printfingerHandle, &Result, 500) == pdPASS)
     {
-      SendFPHeader();
-      SendFPCreateCharFile1();
-      Result = CheckFPRespsone(12);
+
       if (Result == FP_OK)
       {
+        vTaskSuspend(RFIDHandle);
+        vTaskSuspend(KeyPadHandle);
         SendFPHeader();
+        //SendFPCreateCharFile1();
         SendFPDSearchFinger();
-        Result = CheckFPRespsone(16);
+        //   Result = CheckFPRespsone(12);
+        if (xQueueReceive(printfingerHandle, &Result, 800) == pdPASS)
+        {
 
-        I2C_LCD_display_clear(&LCD);
-        I2C_LCD_set_cursor(&LCD, 0, 4);
-        I2C_LCD_print_string(&LCD, "WELCOME!!");
-        I2C_LCD_set_cursor(&LCD, 1, 4);
-        I2C_LCD_print_string(&LCD, "WELCOME!!");
-        vTaskDelay(2000);
+          if (Result == FP_OK)
+          {
+//            SendFPHeader();
+//            SendFPDSearchFinger();
+//            Result = CheckFPRespsone(16);
+            I2C_LCD_display_clear(&LCD);
+            I2C_LCD_set_cursor(&LCD, 0, 4);
+            I2C_LCD_print_string(&LCD, "WELCOME!!");
+            I2C_LCD_set_cursor(&LCD, 1, 4);
+            I2C_LCD_print_string(&LCD, "WELCOME!!");
+            vTaskDelay(2000);
+            I2C_LCD_display_clear(&LCD);
+          }
+          else
+          {
+            I2C_LCD_display_clear(&LCD);
+            I2C_LCD_set_cursor(&LCD, 0, 1);
+            I2C_LCD_print_string(&LCD, "Finger Error!!");
+            I2C_LCD_set_cursor(&LCD, 1, 1);
+            I2C_LCD_print_string(&LCD, "Finger Error!!");
+            vTaskDelay(2000);
+            I2C_LCD_display_clear(&LCD);
+          }
+
+          I2C_LCD_print_string(&LCD, "Press Ur Pass!");
+        }
       }
-    }
-    else if (Result == FP_ERROR)
-    {
-      I2C_LCD_display_clear(&LCD);
-      I2C_LCD_set_cursor(&LCD, 0, 1);
-      I2C_LCD_print_string(&LCD, "Finger Error!!");
-      I2C_LCD_set_cursor(&LCD, 1, 1);
-      I2C_LCD_print_string(&LCD, "Finger Error!!");
-      vTaskDelay(2000);
-    }
 
-    osDelay(1);
+    }
+    vTaskResume(KeyPadHandle);
+    vTaskResume(RFIDHandle);
+
+    osDelay(10);
   }
   /* USER CODE END StartTask03 */
 }
@@ -658,7 +733,7 @@ void StartTask03(void const *argument)
  * @retval None
  */
 /* USER CODE END Header_StartTask04 */
-void StartTask04(void const *argument)
+void StartTask04(void const * argument)
 {
   /* USER CODE BEGIN StartTask04 */
   uint8_t check_data;
@@ -670,6 +745,7 @@ void StartTask04(void const *argument)
   {
     if (xSemaphoreTake(myBinarySem01Handle, portMAX_DELAY) == pdPASS)
     {
+        vTaskSuspendAll();
       if (xQueueReceive(RegisterHandle, &check_data, 10) == pdPASS)
       {
         if (check_data == 'A')
@@ -791,6 +867,7 @@ void StartTask04(void const *argument)
         }
       }
       HAL_UART_Receive_IT(&huart3, &data_winform, 1);
+      xTaskResumeAll();
     }
 
     osDelay(1);
@@ -799,20 +876,19 @@ void StartTask04(void const *argument)
 }
 
 /**
- * @brief  Period elapsed callback in non blocking mode
- * @note   This function is called  when TIM2 interrupt took place, inside
- * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
- * a global variable "uwTick" used as application time base.
- * @param  htim : TIM handle
- * @retval None
- */
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM2 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
 
   /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM2)
-  {
+  if (htim->Instance == TIM2) {
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
@@ -821,9 +897,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 }
 
 /**
- * @brief  This function is executed in case of error occurrence.
- * @retval None
- */
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -832,16 +908,16 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef USE_FULL_ASSERT
+#ifdef  USE_FULL_ASSERT
 /**
- * @brief  Reports the name of the source file and the source line number
- *         where the assert_param error has occurred.
- * @param  file: pointer to the source file name
- * @param  line: assert_param error line source number
- * @retval None
- */
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+```````````  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
 void assert_failed(uint8_t *file, uint32_t line)
-{
+{ 
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */

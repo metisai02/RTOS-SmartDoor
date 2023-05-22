@@ -45,8 +45,8 @@
 uint8_t data_winform = 0;
 uint32_t start1, end1, ticks;
 uint8_t register_FingerResult = FP_NOFINGER;
-uint8_t IDFromFinger;
-uint8_t CurrentNumberFinger;
+extern uint8_t IDFromFinger;
+extern uint8_t CurrentNumberFinger;
 
 uint8_t ack_fp[] = "N";
 uint8_t ack_rfid[] = "M";
@@ -86,7 +86,7 @@ osThreadId RFIDHandle;
 osThreadId FingerPrinfHandle;
 osThreadId INTERRUPTHandle;
 osMessageQId RegisterHandle;
-QueueHandle_t printfingerHandle;
+osMessageQId printfingerHandle;
 osSemaphoreId myBinarySem01Handle;
 /* USER CODE BEGIN PV */
 I2C_LCD_Handle_t LCD;
@@ -125,14 +125,13 @@ int main(void)
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
-  
 
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
-
+  /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
 
@@ -178,7 +177,7 @@ int main(void)
   RegisterHandle = osMessageCreate(osMessageQ(Register), NULL);
 
   /* definition and creation of printfinger */
-  osMessageQDef(printfinger, 6, uint8_t);
+  osMessageQDef(printfinger, 1, uint8_t);
   printfingerHandle = osMessageCreate(osMessageQ(printfinger), NULL);
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -191,16 +190,16 @@ int main(void)
   KeyPadHandle = osThreadCreate(osThread(KeyPad), NULL);
 
   /* definition and creation of RFID */
-  osThreadDef(RFID, StartTask02, osPriorityBelowNormal, 0, 128);
-  RFIDHandle = osThreadCreate(osThread(RFID), NULL);
+//  osThreadDef(RFID, StartTask02, osPriorityNormal, 0, 128);
+//  RFIDHandle = osThreadCreate(osThread(RFID), NULL);
 
   /* definition and creation of FingerPrinf */
-  osThreadDef(FingerPrinf, StartTask03, osPriorityNormal, 0, 128);
-  FingerPrinfHandle = osThreadCreate(osThread(FingerPrinf), NULL);
+//  osThreadDef(FingerPrinf, StartTask03, osPriorityNormal, 0, 128);
+//  FingerPrinfHandle = osThreadCreate(osThread(FingerPrinf), NULL);
 
   /* definition and creation of INTERRUPT */
-  osThreadDef(INTERRUPT, StartTask04, osPriorityAboveNormal, 0, 256);
-  INTERRUPTHandle = osThreadCreate(osThread(INTERRUPT), NULL);
+//  osThreadDef(INTERRUPT, StartTask04, osPriorityAboveNormal, 0, 256);
+//  INTERRUPTHandle = osThreadCreate(osThread(INTERRUPT), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   keypad_init();
@@ -215,7 +214,7 @@ int main(void)
 
   /* Start scheduler */
   osKernelStart();
-  
+
   /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
@@ -238,7 +237,7 @@ void SystemClock_Config(void)
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Initializes the CPU, AHB and APB busses clocks 
+  /** Initializes the CPU, AHB and APB busses clocks
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
@@ -251,7 +250,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  /** Initializes the CPU, AHB and APB busses clocks 
+  /** Initializes the CPU, AHB and APB busses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
@@ -449,10 +448,10 @@ static void MX_USART3_UART_Init(void)
 
 }
 
-/** 
+/**
   * Enable DMA controller clock
   */
-static void MX_DMA_Init(void) 
+static void MX_DMA_Init(void)
 {
 
   /* DMA controller clock enable */
@@ -480,15 +479,15 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3 
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3
                           |RC522_RST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(RC522_CS_GPIO_Port, RC522_CS_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PA0 PA1 PA2 PA3 
+  /*Configure GPIO pins : PA0 PA1 PA2 PA3
                            RC522_RST_Pin */
-  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3 
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3
                           |RC522_RST_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -498,7 +497,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pins : PA4 PA5 PA6 PA7 */
   GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : RC522_CS_Pin */
@@ -546,12 +545,6 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void const * argument)
 {
-    
-    
-    
-    
-    
-    
 
   /* USER CODE BEGIN 5 */
   char key;
@@ -604,7 +597,7 @@ void StartDefaultTask(void const * argument)
 
     osDelay(10);
   }
-  /* USER CODE END 5 */ 
+  /* USER CODE END 5 */
 }
 
 /* USER CODE BEGIN Header_StartTask02 */
@@ -912,12 +905,12 @@ void Error_Handler(void)
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
-```````````  * @param  file: pointer to the source file name
+  * @param  file: pointer to the source file name
   * @param  line: assert_param error line source number
   * @retval None
   */
 void assert_failed(uint8_t *file, uint32_t line)
-{ 
+{
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
